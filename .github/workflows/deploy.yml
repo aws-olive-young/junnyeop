@@ -9,25 +9,24 @@ permissions:
 
 env:
   # Spring Boot Active Profile
-  ACTIVE_PROFILE: ${{ github.ref == 'refs/heads/master' && 'production' || 'develop' }}
+  ACTIVE_PROFILE: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
   # AWS Region
   AWS_REGION: ap-northeast-2
   # 도커 컨테이너명
   CONTAINER_NAME: example-application
   # ECR 리포지토리명
-  ECR_REPOSITORY: ${{ github.ref == 'refs/heads/master' && 'production-example-application' || 'develop-example-application' }}
+  ECR_REPOSITORY: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
   # ECS 클러스터명
-  ECS_CLUSTER: ${{ github.ref == 'refs/heads/master' && 'production-example-application' || 'develop-example-application' }}
+  ECS_CLUSTER: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
   # ECS 서비스명
-  ECS_SERVICE: ${{ github.ref == 'refs/heads/master' && 'production-example-application' || 'develop-example-application' }}
+  ECS_SERVICE: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
   # ECS Task definition 파일명
-  ECS_TASK_DEFINITION: ${{ github.ref == 'refs/heads/master' && 'task-definition-production.json' || 'task-definition-develop.json' }}
+  ECS_TASK_DEFINITION: ${{ github.ref == 'refs/heads/main' && 'task-definition-production.json' || 'task-definition-develop.json' }}
 
 jobs:
   job:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v3
@@ -43,7 +42,6 @@ jobs:
 
       - name: Gradle로 빌드
         uses: gradle/gradle-build-action@v2
-
         with:
           arguments: clean build
         env:
