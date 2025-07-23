@@ -12,7 +12,7 @@ env:
   CONTAINER_NAME: example-application
   ECR_REPOSITORY: develop-example-application
   ECS_CLUSTER: develop-example-application
-  ECS_SERVICE: develop-example-application
+  ECS_SERVICE: develop-example-application-task-service-5ux26xi7
   ECS_TASK_DEFINITION: task-definition-develop.json
   ACTIVE_PROFILE: develop
 
