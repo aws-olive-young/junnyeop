@@ -1,5 +1,5 @@
-# JDK 17
-FROM openjdk:21-alpine
+# 안정적이고 공식적인 slim 이미지
+FROM openjdk:21-slim
 
 # 8080 포트로 배포
 EXPOSE 8080
