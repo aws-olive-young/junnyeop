@@ -1,4 +1,4 @@
-name: 브랜치 기반 Amazon ECS 자동 배포
+name: Amazon ECS 배포 - develop 전용
 
 on:
   push:
@@ -8,25 +8,19 @@ permissions:
   contents: read
 
 env:
-  # Spring Boot Active Profile
-  ACTIVE_PROFILE: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
-  # AWS Region
   AWS_REGION: ap-northeast-2
-  # 도커 컨테이너명
   CONTAINER_NAME: example-application
-  # ECR 리포지토리명
-  ECR_REPOSITORY: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
-  # ECS 클러스터명
-  ECS_CLUSTER: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
-  # ECS 서비스명
-  ECS_SERVICE: ${{ github.ref == 'refs/heads/main' && 'production-example-application' || 'develop-example-application' }}
-  # ECS Task definition 파일명
-  ECS_TASK_DEFINITION: ${{ github.ref == 'refs/heads/main' && 'task-definition-production.json' || 'task-definition-develop.json' }}
+  ECR_REPOSITORY: develop-example-application
+  ECS_CLUSTER: develop-example-application
+  ECS_SERVICE: develop-example-application
+  ECS_TASK_DEFINITION: task-definition-develop.json
+  ACTIVE_PROFILE: develop
 
 jobs:
-  job:
-    name: Build & Deploy
+  deploy:
+    name: Build & Deploy to ECS (develop)
     runs-on: ubuntu-latest
+
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v3
@@ -40,14 +34,14 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x ./gradlew
 
-      - name: Gradle로 빌드
+      - name: Gradle 빌드
         uses: gradle/gradle-build-action@v2
         with:
           arguments: clean build
         env:
           SPRING_PROFILES_ACTIVE: ${{ env.ACTIVE_PROFILE }}
 
-      - name: AWS 자격 증명 구성
+      - name: AWS 인증 구성
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -58,7 +52,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Docker 이미지 빌드 및 ECR에 푸시
+      - name: Docker 이미지 빌드 및 ECR 푸시
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -68,7 +62,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: ECS 태스크 정의에 새로운 이미지 반영
+      - name: task-definition JSON에 이미지 반영
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -76,7 +70,7 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Amazon ECS에 배포
+      - name: ECS에 배포
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
