@@ -39,7 +39,8 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle로 빌드
-        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        uses: gradle/gradle-build-action@v2
+
         with:
           arguments: clean build
         env:
